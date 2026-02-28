@@ -1,32 +1,10 @@
-### !!! Please fill this out when making a PR !!!
-## Overview
+## What & Why?
+Describe what you changed/added and why. If relevant explain your implemntation.
 
-Describe what this PR changes.
+## Checklist
+- [ ] No migration errors
+- [ ] No console errors
+- [ ] Updated requirements.txt (if needed)
+- [ ] Works locally
 
----
-
-## Why is this needed?
-
-Explain what bug, feature, or improvement is being addressed.
-
----
-
-## What was done?
-
-- Describe your implementation.
-- Mention any models, views, templates, or permissions affected.
-- Mention any migrations created.
-
----
-
-## Testing Checklist
-
-- [ ] Manually tested
-- [ ] No errors in console/server
-- [ ] Works as expected
-
-
-
-
----
-Feel free to let me know if anything else should be added.
+/cc @teammate for review.
