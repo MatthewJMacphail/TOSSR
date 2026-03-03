@@ -7,7 +7,7 @@ or other materials to this repository, you agree to the following terms:
    irrevocable, worldwide, royalty-free, non-exclusive license to use,
    reproduce, modify, distribute, sublicense, and commercially exploit
    your contributions, in whole or in part, in any form, including under
-   licenses other than the GPLv3.
+   licenses other than the AGPLv3.
 
 2. **Ownership.** You retain copyright ownership of your contributions.
    This agreement does not transfer ownership of your intellectual property.
