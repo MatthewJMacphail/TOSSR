@@ -19,6 +19,9 @@ def populate():
     School.objects.all().delete()
 
     # === SCHOOLS ===
+    """
+    Computing is left commented out so we can test adding modules/degrees to it.
+    """
     # computing = School.objects.create(name='School of Computing Science')
     psychology = School.objects.create(name='School of Psychology & Neuroscience')
     engineering = School.objects.create(name='James Watt School of Engineering')
