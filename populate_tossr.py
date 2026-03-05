@@ -1034,7 +1034,7 @@ def populate():
         degree.schools.add(*schools_list)
         degrees[code] = degree
 
-    print(f'✓ Created {School.objects.count()} schools')
+    print(f'Created {School.objects.count()} schools')
 
     # ====== MODULES ======
     print('Creating modules...')
@@ -9752,7 +9752,7 @@ def populate():
     Module.objects.create(id='EDUC1119', name='Understanding Academic Writing in Context',
                           school=student_learning_development, level=1, credits=5)
 
-    print(f'✓ Created {Module.objects.count()} modules')
+    print(f'Created {Module.objects.count()} modules')
 
     # === ADMIN ===
     User.objects.create_user(
@@ -9778,7 +9778,7 @@ def populate():
 
 
 
-    print("✅ Done!")
+    print("Done!")
     print(f"Schools: {School.objects.count()}")
     print(f"Degrees: {Degree.objects.count()}")
     print(f"Modules: {Module.objects.count()}")
