@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TOSSR Sign Up</title>
+
+<style>
+
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f3f4f6;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+
+.card{
+    background:white;
+    padding:50px;
+    width:360px;
+    border-radius:14px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.08);
+    text-align:center;
+}
+
+.logo{
+    font-size:42px;
+    font-weight:800;
+    letter-spacing:4px;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#6b7280;
+    margin-bottom:30px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    border:1px solid #e5e7eb;
+    font-size:14px;
+}
+
+input:focus{
+    outline:none;
+    border-color:#6366f1;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:15px;
+    border:none;
+    border-radius:8px;
+    background:#6366f1;
+    color:white;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#4f46e5;
+}
+
+.footer{
+    margin-top:20px;
+    font-size:14px;
+}
+
+a{
+    color:#6366f1;
+    text-decoration:none;
+    font-weight:500;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="logo">TOSSR</div>
+<div class="subtitle">Create your account</div>
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="username" placeholder="Username" required>
+
+<input type="email" name="email" placeholder="Email" required>
+
+<input type="password" name="password" placeholder="Password" required>
+
+<input type="password" name="confirm_password" placeholder="Confirm Password" required>
+
+<button type="submit">Sign Up</button>
+
+</form>
+
+<div class="footer">
+Already have an account?  
+<a href="{% url 'login' %}">Login</a>
+</div>
+
+</div>
+
+</body>
+</html>
