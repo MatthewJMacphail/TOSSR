@@ -1,12 +1,14 @@
 from typing import Any
-
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
+from materials.models import StudyMaterial
 from .forms import SignUpStep1Form, SignUpStep2Form
 from .models import User, Student
-import json
+from .decorators import student_required, moderator_required
+
 
 # Create your views here.
 
@@ -40,8 +42,6 @@ def signup_step2(request):
     """
     Step 2: Name, degree, bio
     Separated in order to have a cleaner UI and easier account validation.
-    :param request:
-    :return:
     """
 
     if 'signup_step1' not in request.session:
@@ -87,6 +87,13 @@ def login_view(request):
     """
     Login: redirect after success undecided for now
     """
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('admin:index')
+        elif request.user.role == 'moderator':
+            return redirect('accounts:moderator_dashboard')
+        else:  # student
+            return redirect('accounts:student_dashboard')
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -100,10 +107,12 @@ def login_view(request):
                 })
 
             login(request, user)
-            if user.is_staff:
-                return redirect('/admin/') #TODO: decide on landing page
+            if user.is_superuser:
+                return redirect('admin:index')
+            elif user.role == 'moderator':
+                return redirect('accounts:moderator_dashboard')
             else:
-                return redirect('accounts:placeholder')
+                return redirect('accounts:student_dashboard')
         else:
             return render(request, 'accounts/login.html', {
                 'error': 'Invalid username or password.'
@@ -111,40 +120,104 @@ def login_view(request):
 
     return render(request, 'accounts/login.html')
 
-@login_required(login_url='/accounts/login/')
-def placeholder_view(request):
-    if request.user.is_staff:
-        return redirect('/admin/')
-    """
-    Temporary placeholder dashboard for testing
-    """
+
+
+
+@student_required
+def student_dashboard(request):
+    """Tier 3: Student dashboard"""
+    student = request.user.student_profile
+
     return render(request, 'accounts/placeholder.html', {
         'user': request.user,
-        'student': request.user.student_profile,
+        'student': student,
+        'message': f'Student Dashboard for {student.degree}'
     })
+
+
+@moderator_required
+def moderator_dashboard(request):
+    """Tier 2: Moderator dashboard for content moderation"""
+
+    # Get materials that need attention
+    flagged_materials = StudyMaterial.objects.filter(
+        is_hidden_by_admin=False
+    ).select_related('owner', 'module')[:20]
+
+    hidden_materials = StudyMaterial.objects.filter(
+        is_hidden_by_admin=True
+    ).select_related('owner', 'module')[:20]
+
+    recent_materials = StudyMaterial.objects.filter(
+        is_published=True,
+        is_deleted=False
+    ).order_by('-created_at')[:10]
+
+    stats = {
+        'total_materials': StudyMaterial.objects.filter(is_deleted=False).count(),
+        'published_materials': StudyMaterial.objects.filter(
+            is_published=True,
+            is_deleted=False
+        ).count(),
+        'hidden_materials': StudyMaterial.objects.filter(is_hidden_by_admin=True).count(),
+        'total_students': User.objects.filter(role='student').count(),
+    }
+    #TODO: MAKE SURE WE MAKE A MOD DASHBOARD
+    return render(request, 'accounts/moderator_dashboard_placeholder.html', {
+        'flagged_materials': flagged_materials,
+        'hidden_materials': hidden_materials,
+        'recent_materials': recent_materials,
+        'stats': stats,
+    })
+
+
+@moderator_required
+def hide_material(request, material_id):
+    """Hide a study material (Tier 2 only)"""
+    material = get_object_or_404(StudyMaterial, id=material_id)
+    material.is_hidden_by_admin = True
+    material.save()
+    return redirect('accounts:moderator_dashboard')
+
+@moderator_required
+def unhide_material(request, material_id):
+    """Unhide a study material (Tier 2 only)"""
+    material = get_object_or_404(StudyMaterial, id=material_id)
+    material.is_hidden_by_admin = False
+    material.save()
+    return redirect('accounts:moderator_dashboard')
 
 
 @login_required
 def download_my_data(request):
-    """Required for GDPR Compliancy"""
+    """GDPR: Export all user data (Tier 2 & 3)"""
     user: User = request.user
+
+    # Superusers don't use this feature
+    if user.is_superuser:
+        return redirect('admin:index')
+
     data: dict[str, Any] = {
         'profile': {
             'username': user.username,
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
+            'tier': user.get_tier_name(),
             'role': user.role,
             'date_joined': user.created_at.isoformat(),
         }
     }
+
     if user.role == 'student':
         student = user.student_profile
+
         data['profile'].update({
             'degree': student.degree.get_full_name(),
             'graduation_year': student.graduation_year,
             'bio': student.bio,
         })
+
         data['modules'] = [
             {
                 'code': sm.module.id,
@@ -161,16 +234,6 @@ def download_my_data(request):
             }
             for mat in student.created_materials.all()
         ]
-        data['comments'] = [
-            {
-                'content': c.content,
-                'date': c.created_at.isoformat(),
-            }
-            for c in student.comments.all()
-        ]
-
-
-
 
     response = JsonResponse(data)
     response['Content-Disposition'] = f'attachment; filename="tossr_data_{user.username}.json"'
@@ -180,33 +243,40 @@ def download_my_data(request):
 
 @login_required
 def anonymise_account(request):
-    """
-    GDPR Compliancy
-    """
+    """GDPR: Right to be forgotten (Tier 2 & 3)"""
+
+    # Superusers don't use this feature
+    if request.user.is_superuser:
+        return redirect('admin:index')
+
     if request.method == 'POST':
         password = request.POST.get('password')
         user = authenticate(username=request.user.username, password=password)
+
         if user:
+            if user.role == 'student':
+                student = user.student_profile
+
+                student.created_materials.filter(
+                    Q(is_published=False) | Q(module__isnull=True) | Q(is_deleted=True)
+                ).delete()
+
+                student.bio = ""
+                student.save()
+
             user.username = f"deleted_user_{user.id}"
             user.email = f"deleted_{user.id}@deleted.com"
             user.first_name = "Deleted"
             user.last_name = "User"
             user.is_active = False
             user.save()
-            if user.role == 'student':
-                student = user.student_profile
-                student.student_profile.bio = ""
 
-                student.created_materials.filter(is_published=False).delete()
-                student.created_materials.filter(module__isnull=True).delete()
-                student.created_materials.filter(is_deleted=True).delete()
-                student.save()
             logout(request)
             return redirect('account_deleted')
         else:
-            # TODO: make profile delete page
             return render(request, 'accounts/delete_account.html', {
                 'error': 'Incorrect password'
             })
 
     return render(request, 'accounts/delete_account.html')
+
