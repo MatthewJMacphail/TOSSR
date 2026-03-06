@@ -9753,36 +9753,51 @@ def populate():
                           school=student_learning_development, level=1, credits=5)
 
     print(f'Created {Module.objects.count()} modules')
-
-    # === ADMIN ===
-    User.objects.create_user(
-        username='admin', password='admin123',
-        first_name='John', last_name='Admin',
-        email='admin@tossr.com',
-        role='admin', is_staff=True, is_superuser=True
-    )
-
-    # === STUDENTS ===
-    glasgow_student = Student.objects.create(
-        user=User.objects.create_user(
-            username='glasgow_student', password='test',
-            first_name='Glasgow', last_name='Student',
-            email='student@test.com',
-            role='student'
-        ),
-        degree = degrees['N400'],
-        graduation_year = 2030,
-        bio='First year math student. test account'
+    print('Creating admin/superuser account...')
+    # tier 1 admin
+    superuser = User.objects.create_superuser(
+        username='admin',
+        email='admin@gla.ac.uk',
+        password='AdminPass123!',
+        first_name='Database',
+        last_name='Administrator',
     )
 
 
+    # tier 2 moderator
+    print('Creating moderator account...')
+    mod1 = User.objects.create_user(
+        username='moderator1',
+        email='mod1@gla.ac.uk',
+        password='ModPass123!',
+        first_name='John',
+        last_name='Moderator',
+        role='moderator',
+    )
 
+    # tier 3 student
+    print('Creating student account...')
+    student1_user = User.objects.create_user(
+        username='student1',
+        email='student1@gla.ac.uk',
+        password='StudentPass123!',
+        first_name='Alice',
+        last_name='Student',
+        role='student',
+    )
+
+    student1 = Student.objects.create(
+        user=student1_user,
+        degree=degrees['G400'],
+        graduation_year=2028,
+        bio='Love coding and coffee!',
+    )
 
     print("Done!")
     print(f"Schools: {School.objects.count()}")
     print(f"Degrees: {Degree.objects.count()}")
     print(f"Modules: {Module.objects.count()}")
-    print(f"Students: {Student.objects.count()}")
+    print(f"Accounts made: {User.objects.count()}")
 
 
 if __name__ == '__main__':
