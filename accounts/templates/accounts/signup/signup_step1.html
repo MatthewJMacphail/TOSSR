@@ -5,118 +5,10 @@
 {% load django_bootstrap5 %}
 {% bootstrap_css %}
 {% bootstrap_javascript %}
+{% load static %}
 
-<style>
+<link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
 
-body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#f3f4f6;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-}
-
-.card{
-    background:white;
-    padding:50px;
-    width:360px;
-    border-radius:14px;
-    box-shadow:0 20px 40px rgba(0,0,0,0.08);
-    text-align:center;
-}
-
-.logo{
-    font-size:42px;
-    font-weight:800;
-    letter-spacing:4px;
-    margin-bottom:10px;
-}
-
-.subtitle{
-    color:#6b7280;
-    margin-bottom:30px;
-}
-
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border-radius:8px;
-    border:1px solid #e5e7eb;
-    font-size:14px;
-}
-
-input:focus{
-    outline:none;
-    border-color:#6366f1;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    margin-top:15px;
-    border:none;
-    border-radius:8px;
-    background:#6366f1;
-    color:white;
-    font-weight:600;
-    font-size:15px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#4f46e5;
-}
-
-.footer{
-    margin-top:20px;
-    font-size:14px;
-}
-
-a{
-    color:#6366f1;
-    text-decoration:none;
-    font-weight:500;
-}
-
-ul {
-  list-style-type: none; 
-  padding-left: 0;      
-}
-
-ul li {
-  margin-bottom: 0.5rem;  
-  line-height: 1.4;     
-  display: flex;
-  align-items: baseline; 
-}
-
-ul li strong {
-  margin-right: 0.5rem;   
-  font-weight: 600;      
-
-.privacy{
-    display:flex;
-    flex-direction: column;
-    align-items:flex-start;
-    font-size:14px;
-    margin-top:10px;
-}
-
-.privacy input{
-    width:auto;
-}
-
-.privacy .error {
-    color: red;
-    font-size: 13px;
-    margin-top: 4px;
-    margin-left: 0;
-}
-
-</style>
 </head>
 
 <body>
@@ -125,36 +17,56 @@ ul li strong {
 
 <div class="logo">TOSSR</div>
 <div class="subtitle">Create your account</div>
+<div class="step-indicator">Step 1 of 2</div>
+
+{% if form.errors %}
+    <div style="color:red; margin-bottom:15px; text-align:left;">
+        {{ form.errors }}
+    </div>
+{% endif %}
 
 <form method="POST">
-{% csrf_token %}
+    {% csrf_token %}
 
-<input type="text" name="username" placeholder="Username" required>
+    <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        value="{{ form.username.value|default:'' }}"
+        required
+    >
 
-<input type="email" name="email" placeholder="Email" required>
+    <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        value="{{ form.email.value|default:'' }}"
+        required
+    >
 
-<input type="password" name="password" placeholder="Password" required>
+    <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+    >
 
-<input type="password" name="confirm_password" placeholder="Confirm Password" required>
+    <input
+        type="password"
+        name="password_confirm"
+        placeholder="Confirm Password"
+        required
+    >
 
-<div class="privacy">
-    <label>
-        <input type="checkbox" name="privacy_accepted" id="privacy_accepted">
-        I agree to the
-        <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">
-            Privacy Policy
-        </a>
-    </label>
+    <div class="privacy">
+        <label>
+            <input type="checkbox" name="privacy_accepted" id="privacy_accepted">
+            I agree to the
+            <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+        </label>
+    </div>
 
-    {% if form.privacy_accepted.errors %}
-        <div class="error" style="color:red; font-size:13px; margin-top:4px;">
-            {{ form.privacy_accepted.errors.as_text|striptags }}
-        </div>
-    {% endif %}
-</div>
-
-<button type="submit">Sign Up</button>
-
+    <button type="submit">Sign Up</button>
 </form>
 
 <div class="footer">

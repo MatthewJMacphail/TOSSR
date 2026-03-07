@@ -28,7 +28,7 @@ def signup_step1(request):
                 'password': form.cleaned_data['password']
             }
 
-            return redirect('signup_step2')
+            return redirect('accounts:signup_step2')
 
     else:
         form = SignUpStep1Form()
